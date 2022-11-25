@@ -5,45 +5,52 @@
 #include <iostream>
 #include "io.h"
 
-template<typename char_type = char> void timestamp(std::basic_stringstream<char_type>& ss, const std::chrono::milliseconds& dur);
-template<typename char_type = char> void replace_all(std::basic_string<char_type>& in, const char_type replace, const char_type with);
+namespace sch = std::chrono;
+
+template<typename char_type> void timestamp(std::basic_stringstream<char_type>& ss, const std::chrono::milliseconds& dur);
+template<typename char_type> void replace_all(std::basic_string<char_type>& in, const char_type replace, const char_type with);
 
 int main(int argc, char** argv)
 {   
     if(argc != 3)
     {
-        std::cout << "usage: \n app.exe lyricsfile.txt osufile.osu ";
+        std::cout << "usage:\napp.exe lyricsfile.txt osufile.osu\n";
         exit(0);
     }
 
     // types
-    using char_type = wchar_t;
-    using num_type = int16_t;
+    using char_type = char;
+    using num_type = int;
     using string_type = std::basic_string<char_type>;
-    namespace sch = std::chrono;
-    const auto endl = L'\n';
+    const char_type endl = '\n';
 
     // get file path 
-    auto lyrics_file = io::inputf<char_type>(argv[1]);
-    auto osu_file = io::inputf<char_type>(argv[2]);
-
+    string_type osu_file = io::inputf<char_type>(argv[2]);
+    
     // getting bookmarks from osu file
     std::vector<sch::milliseconds> bookmarks;
     {
-        auto position_begin = osu_file.find(L"bookmarks: ") + 10;
-        auto position_end= osu_file.find(endl, position_begin);
+        auto position_begin = osu_file.find("bookmarks: ") + 10;
+        auto position_end = osu_file.find(endl, position_begin);
+
         string_type bookmarks_str(osu_file.begin() + position_begin, osu_file.begin() + position_end);
-        replace_all(bookmarks_str, L',',L' ');
+        replace_all(bookmarks_str, ',',' ');
+
         std::basic_stringstream<char_type> ss(bookmarks_str);
         {
             num_type temp;
             while(ss >> temp)
             {
+                
                 bookmarks.emplace_back((temp));
                 temp = 0;
             }
         }
     }
+    osu_file.clear();
+    
+    // get file path 
+    string_type lyrics_file = io::inputf<char_type>(argv[1]);
     
     // splitting lyrics file
     std::vector<string_type> lyrics; 
@@ -58,6 +65,7 @@ int main(int argc, char** argv)
             }
         }
     }
+    lyrics_file.clear();
 
     // error
     if(lyrics.size() != bookmarks.size())
@@ -74,26 +82,26 @@ int main(int argc, char** argv)
         {
             ss << i << endl;
             timestamp(ss, *(bookmarks.begin() + i));
-            ss << L" --> ";
+            ss << " --> ";
             timestamp(ss, *(bookmarks.begin() + i + 1));
-            ss << endl << *(lyrics.begin() + i) << L"\n\n";
+            ss << endl << *(lyrics.begin() + i) << "\n\n";
             result += ss.str();
             ss.clear();
         }       
         ss << bookmarks.size() << endl;
         timestamp(ss, *(bookmarks.begin() + bookmarks.size()));
-        ss << L" --> ";
+        ss << " --> ";
         timestamp(ss, *(bookmarks.begin() + bookmarks.size()) + sch::milliseconds(2));
-        ss << endl << *(lyrics.begin() + bookmarks.size()) << L"\n\n";
+        ss << endl << *(lyrics.begin() + bookmarks.size()) << "\n\n";
         result += ss.str();
         ss.clear();
     }
 
     // output file
-    io::outputf(L"output.srt", result);
+    io::outputf("output.srt", result);
 }
 
-template<typename char_type = char> void replace_all(std::basic_string<char_type>& in, const char_type replace, const char_type with)
+template<typename char_type> void replace_all(std::basic_string<char_type>& in, const char_type replace, const char_type with)
 {
     for(auto i = in.begin(); i != in.end(); ++i)
     {
@@ -106,54 +114,55 @@ template<typename char_type = char> void replace_all(std::basic_string<char_type
 
 template<typename char_type> void timestamp(std::basic_stringstream<char_type>& ss, const std::chrono::milliseconds& dur)
 {
-    auto hours = (duration_cast<sch::hours>(abs(dur)));
-    auto minutes = (duration_cast<sch::minutes>(abs(dur) - hours));
-    auto seconds = (duration_cast<sch::seconds>(abs(dur) - hours - minutes));
-    auto subseconds = (duration_cast<sch::milliseconds>(abs(dur) - hours - minutes - seconds));
+
+    auto hours = (sch::duration_cast<sch::hours>(abs(dur)));
+    auto minutes = (sch::duration_cast<sch::minutes>(abs(dur) - hours));
+    auto seconds = (sch::duration_cast<sch::seconds>(abs(dur) - hours - minutes));
+    auto subseconds = (sch::duration_cast<sch::milliseconds>(abs(dur) - hours - minutes - seconds));
 
     if (hours.count() > 9)
     {
-        ss << hours;
+        ss << hours.count();
     }
     else
     {
-        ss << '0' << hours;
+        ss << '0' << hours.count();
     }
-    ss << L':';
+    ss << ':';
 
     if (minutes.count() > 9)
     {
-        ss << minutes;
+        ss << minutes.count();
     }
     else
     {
-        ss << L'0' << minutes;
+        ss << '0' << minutes.count();
     }
-    ss << L':';
+    ss << ':';
 
     if (seconds.count() > 9)
     {
-        ss << seconds;
+        ss << seconds.count();
     }
     else
     {
-        ss << L'0' << seconds;
+        ss << '0' << seconds.count();
     }
-    ss << L',';
+    ss << ',';
     
     if (subseconds.count() > 99)
     {
-        ss << subseconds;
+        ss << subseconds.count();
     }
     else
     {
         if (subseconds.count() > 9)
         {
-            ss << L'0' << subseconds;
+            ss << '0' << subseconds.count();
         }
         else
         {
-            ss << L"00" << subseconds;
+            ss << "00" << subseconds.count();
         }
     }
 }
