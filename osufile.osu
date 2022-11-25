@@ -1,0 +1,57 @@
+osu file format v14
+
+[General]
+AudioFilename: audio.mp3
+AudioLeadIn: 0
+PreviewTime: 53319
+Countdown: 0
+SampleSet: Soft
+StackLeniency: 0.4
+Mode: 0
+LetterboxInBreaks: 0
+WidescreenStoryboard: 1
+
+[Editor]
+Bookmarks: 9751,10842,11933,13024
+DistanceSpacing: 1
+BeatDivisor: 8
+GridSize: 32
+TimelineZoom: 0.8000002
+
+[Metadata]
+Title:Prism (TV Size)
+TitleUnicode:Prism (TV Size)
+Artist:Ikeda Ayako
+ArtistUnicode:Ikeda Ayako
+Creator:EdgyKing
+Version:asdasdad
+Source:
+Tags:cyber inductance
+BeatmapID:0
+BeatmapSetID:-1
+
+[Difficulty]
+HPDrainRate:6
+CircleSize:4.5
+OverallDifficulty:8.8
+ApproachRate:9.5
+SliderMultiplier:2.4
+SliderTickRate:1
+
+[Events]
+//Background and Video events
+0,0,"bggg.jpg",0,0
+//Break Periods
+//Storyboard Layer 0 (Background)
+//Storyboard Layer 1 (Fail)
+//Storyboard Layer 2 (Pass)
+//Storyboard Layer 3 (Foreground)
+//Storyboard Layer 4 (Overlay)
+//Storyboard Sound Samples
+
+[TimingPoints]
+1024,545.454545454546,4,2,0,60,1,0
+54479,545.454545454546,4,2,0,60,1,0
+
+
+[HitObjects]

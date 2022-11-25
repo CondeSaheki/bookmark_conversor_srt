@@ -1,5 +1,8 @@
 #pragma once
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 namespace io
 {
@@ -7,7 +10,7 @@ namespace io
     
         /* In */
     
-    template<typename type, typename char_type = char> [[nodiscard]] constexpr type input(std::basic_istream<char_type>& in = std::cin) noexcept
+    template<typename type, typename char_type> [[nodiscard]] constexpr type input(std::basic_istream<char_type>& in = std::cin) noexcept
     {
         std::basic_stringstream<char_type> temp_ss;
         {
@@ -53,7 +56,7 @@ namespace io
         return temp; // ok
     }
 
-    template<typename char_type = char> [[nodiscard]] constexpr std::basic_string<char_type> input_line(std::basic_istream<char_type>& in = std::cin) noexcept
+    template<typename char_type> [[nodiscard]] constexpr std::basic_string<char_type> input_line(std::basic_istream<char_type>& in = std::cin) noexcept
     {
         using type = std::basic_string<char_type>;
         std::basic_stringstream<char_type> temp_ss;
@@ -86,7 +89,7 @@ namespace io
 
     /* IN FILE */
 
-    template<typename _Elem = char>
+    template<typename _Elem>
     [[nodiscard]] std::basic_string<_Elem> inputf(const sfs::path& file_path) noexcept
     {
         std::basic_string<_Elem> file;
@@ -101,7 +104,7 @@ namespace io
             fs.seekg(0);
             fs.clear();
             file.reserve(static_cast<int>(end)); // alloc
-            benchmark::bench a;
+            
             for (auto pos = 0; pos != static_cast<int>(end); ++pos) // fs.tellg() != end
             {
                 //fs >> caracter
@@ -127,7 +130,7 @@ namespace io
 
     /* OUT FILE */
 
-    template<typename _Elem = char>
+    template<typename _Elem>
     void outputf(const sfs::path& file_path, const std::basic_string<_Elem>& str) noexcept
     {
         std::basic_ofstream<_Elem> fs;
