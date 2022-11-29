@@ -5,109 +5,121 @@
 #include <iostream>
 #include "io.h"
 
+namespace sfs = std::filesystem;
 namespace sch = std::chrono;
+using char_type = char;
+using string_type = std::basic_string<char_type>;
+const char_type endl = '\n';
 
-template<typename char_type> void timestamp(std::basic_stringstream<char_type>& ss, const std::chrono::milliseconds& dur);
-template<typename char_type> void replace_all(std::basic_string<char_type>& in, const char_type replace, const char_type with);
+template<typename _type = string_type >
+std::vector<_type> split(const _type& str, const _type& str2, typename _type::const_iterator start_position) noexcept
+{
+    std::vector<_type> splited;
 
-int main(int argc, char** argv)
-{   
-    if(argc != 3)
+    bool found = false;
+    auto last_last = str.begin();
+    auto it1 = start_position; //typename string_type::iterator
+    auto it2 = str2.begin();
+    auto first_found = start_position;
+
+    while (true)
     {
-        std::cout << "usage:\napp.exe lyricsfile.txt osufile.osu\n";
-        exit(0);
-    }
-
-    // types
-    using char_type = char;
-    using num_type = int;
-    using string_type = std::basic_string<char_type>;
-    const char_type endl = '\n';
-
-    // get file path 
-    string_type osu_file = io::inputf<char_type>(argv[2]);
-    
-    // getting bookmarks from osu file
-    std::vector<sch::milliseconds> bookmarks;
-    {
-        auto position_begin = osu_file.find("bookmarks: ") + 10;
-        auto position_end = osu_file.find(endl, position_begin);
-
-        string_type bookmarks_str(osu_file.begin() + position_begin, osu_file.begin() + position_end);
-        replace_all(bookmarks_str, ',',' ');
-
-        std::basic_stringstream<char_type> ss(bookmarks_str);
+        if(*it1 == *it2)
         {
-            num_type temp;
-            while(ss >> temp)
+            if(it2 != str2.end() -1)
             {
-                
-                bookmarks.emplace_back((temp));
-                temp = 0;
+                ++it2;
+            }
+            else
+            {
+                splited.emplace_back(last_last, first_found);
+                last_last = it1 +1;
+                found = false;
+                ++it1;
+                it2 = str2.begin();
+                first_found = it1;
+                continue;
+            }
+
+            if(found == false)
+            {
+                found = true;
+                first_found = it1;
             }
         }
-    }
-    osu_file.clear();
-    
-    // get file path 
-    string_type lyrics_file = io::inputf<char_type>(argv[1]);
-    
-    // splitting lyrics file
-    std::vector<string_type> lyrics; 
-    {
-        typename string_type::iterator position;
-        for(auto i = lyrics_file.begin(); i != prev(lyrics_file.end()); ++i)
+        else
         {
-            if(*i == endl && *(std::next(i)) == endl)
+           if(found == true)
             {
-                lyrics.emplace_back(position, i);
-                position = std::next(i);
+                found = false;
+                it1 = first_found + 1;
+                it2 = str2.begin();
+                first_found = start_position;
             }
         }
-    }
-    lyrics_file.clear();
 
-    // error
-    if(lyrics.size() != bookmarks.size())
-    {
-        std::cout << "error bookmarks and lyrics num are incompatible";
-        exit(1);
-    }
-
-    // re create file
-    string_type result;
-    {
-        std::basic_stringstream<char_type> ss;
-        for(auto i = 0; i != bookmarks.size() -1; ++i)
+        if(it1 != str.end())
         {
-            ss << i << endl;
-            timestamp(ss, *(bookmarks.begin() + i));
-            ss << " --> ";
-            timestamp(ss, *(bookmarks.begin() + i + 1));
-            ss << endl << *(lyrics.begin() + i) << "\n\n";
-            result += ss.str();
-            ss.clear();
-        }       
-        ss << bookmarks.size() << endl;
-        timestamp(ss, *(bookmarks.begin() + bookmarks.size()));
-        ss << " --> ";
-        timestamp(ss, *(bookmarks.begin() + bookmarks.size()) + sch::milliseconds(2));
-        ss << endl << *(lyrics.begin() + bookmarks.size()) << "\n\n";
-        result += ss.str();
-        ss.clear();
+            ++it1;
+        }
+        else
+        {
+            // not found
+            break;
+        }
     }
 
-    // output file
-    io::outputf("output.srt", result);
+    splited.emplace_back(_type(last_last, str.end()));
+
+    return splited;
 }
 
-template<typename char_type> void replace_all(std::basic_string<char_type>& in, const char_type replace, const char_type with)
+template<typename _type = string_type >
+typename _type::iterator find(const _type& str, const _type& str2, typename _type::iterator start_position) noexcept
 {
-    for(auto i = in.begin(); i != in.end(); ++i)
+    bool found = false;
+    auto it1 = start_position; //typename string_type::iterator
+    auto it2 = str2.begin();
+    auto first_found = start_position;
+
+    while (true)
     {
-        if(*i == replace) 
+        if(*it1 == *it2)
         {
-            *i = with;
+            if(it2 != str2.end() -1)
+            {
+                ++it2;
+            }
+            else
+            {
+                return it1;
+            }
+
+            if(found == false)
+            {
+                found = true;
+                first_found = it1;
+            }
+        }
+        else
+        {
+           if(found == true)
+            {
+                found = false;
+                it1 = first_found + 1;
+                it2 = str2.begin();
+                first_found = start_position;
+            }
+        }
+
+        if(it1 != str.end())
+        {
+            ++it1;
+        }
+        else
+        {
+            // not found
+            return it1;
         }
     }
 }
@@ -149,7 +161,7 @@ template<typename char_type> void timestamp(std::basic_stringstream<char_type>& 
         ss << '0' << seconds.count();
     }
     ss << ',';
-    
+
     if (subseconds.count() > 99)
     {
         ss << subseconds.count();
@@ -165,4 +177,113 @@ template<typename char_type> void timestamp(std::basic_stringstream<char_type>& 
             ss << "00" << subseconds.count();
         }
     }
+}
+
+
+int main(int argc, char** argv)
+{
+
+    // cli args
+    /*
+        if(argc != 4)
+        {
+            std::cout << "usage: app [lyricsfile] [osufile] output_name\n";
+            exit(0);
+        }
+    */
+
+    sfs::path lyrics_file_path("lyrics.txt");
+    sfs::path osu_file_path("osufile.osu");
+    sfs::path output_file_path("lyrics.srt");
+
+    // generate lyric
+
+    std::vector<string_type> lyrics;
+    {
+
+        string_type lyrics_file = io::inputf<char_type>(lyrics_file_path);
+        string_type str2 = "\n\n";
+        lyrics = split(lyrics_file, str2, lyrics_file.begin());
+    }
+
+    // generate bookmarks
+
+    std::vector<sch::milliseconds> bookmarks;
+    {
+        string_type line;
+        {
+            string_type osu_file = io::inputf<char_type>(osu_file_path);
+            string_type str2 = "Bookmarks:";
+            auto found = find(osu_file, str2, osu_file.begin()) +1;
+
+            for(auto it = found; it != osu_file.end(); ++it)
+            {
+                if(*it == '\n')
+                {
+                    line = string_type(found, it -1);
+                    break;
+                }
+            }
+            for(auto it = line.begin(); it != line.end(); ++it)
+            {
+                if(*it == ',')
+                {
+                    *it =  ' ';
+                }
+            }
+        }
+        std::basic_stringstream<char_type> temp_ss(line);
+        int temp_int;
+        while(temp_ss >> temp_int)
+        {
+
+            bookmarks.emplace_back(sch::milliseconds(temp_int));
+            temp_int = 0;
+        }
+    }
+
+
+
+    // generate output srt
+    if(lyrics.size() != bookmarks.size())
+    {
+        std::cout << "<warnning><lyrics|" << lyrics.size() << ">" << "<bookmarks|" << bookmarks.size() << ">\n";
+    }
+
+    string_type result;
+    {
+        std::basic_stringstream<char_type> ss;
+        for(auto i = 0; (i != bookmarks.size() -1) && (i != lyrics.size() -1); ++i)
+        {
+            ss << i << endl;
+            timestamp(ss, *(bookmarks.begin() + i) + sch::milliseconds(1));
+            ss << " --> ";
+            timestamp(ss, *(bookmarks.begin() + i + 1));
+            ss << endl << *(lyrics.begin() + i) << "\n\n";
+            result += ss.str();
+            ss.clear();
+            ss.str(string_type());
+        }
+
+        if(bookmarks.size() < lyrics.size())
+        {
+            ss << bookmarks.size() - 1 << endl;
+        }
+        else
+        {
+            ss << lyrics.size() - 1 << endl;
+        }
+
+        timestamp(ss, *(bookmarks.begin() + bookmarks.size() - 1) );
+        ss << " --> ";
+        timestamp(ss, *(bookmarks.begin() + bookmarks.size() - 1) + sch::milliseconds(500));
+        ss << endl << *(lyrics.begin() + lyrics.size() - 1) << "\n\n";
+        result += ss.str();
+        ss.clear();
+        ss.str(string_type());
+
+    }
+
+    // output file
+    io::outputf(output_file_path, result);
 }
